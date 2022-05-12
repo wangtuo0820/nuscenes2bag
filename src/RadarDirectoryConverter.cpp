@@ -30,6 +30,7 @@ readRadarFile(const fs::path& filePath)
 
   for (const auto& pclRadarObject : *cloud) {
     RadarObject obj;
+    obj.id = pclRadarObject.id;
     obj.pose.x = pclRadarObject.x;
     obj.pose.y = pclRadarObject.y;
     obj.pose.z = pclRadarObject.z;
