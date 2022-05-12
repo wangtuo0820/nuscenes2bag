@@ -7,6 +7,7 @@
 #include "nuscenes2bag/LidarDirectoryConverter.hpp"
 #include "nuscenes2bag/LidarDirectoryConverterXYZIR.hpp"
 #include "nuscenes2bag/RadarDirectoryConverter.hpp"
+#include "nuscenes2bag/RadarDirectoryConverterMarker.hpp"
 
 #include <array>
 #include <iostream>
@@ -53,6 +54,25 @@ writeMsg(const std::string topicName,
     msg.header.frame_id = frameID;
     msg.header.stamp = stampUs2RosTime(timeStamp);
     outBag.write(std::string(topicName).c_str(), msg.header.stamp, msg);
+  }
+}
+
+template<typename T>
+void
+writeMsgMarkerArray(const std::string topicName,
+         const std::string& frameID,
+         const TimeStamp timeStamp,
+         rosbag::Bag& outBag,
+         boost::optional<T> msgOpt)
+{
+  if (msgOpt) {
+    auto& msg_array = msgOpt.value();
+    auto timestamp = stampUs2RosTime(timeStamp);
+    for(auto& msg : msg_array.markers){
+    	msg.header.frame_id = frameID;
+    	msg.header.stamp = timestamp;
+    }
+    outBag.write(std::string(topicName).c_str(), timestamp, msg_array);
   }
 }
 
@@ -137,7 +157,9 @@ SceneConverter::convertSampleDatas(rosbag::Bag& outBag,
     } else if (sampleType == SampleType::RADAR) {
       auto topicName = sensorName;
       auto msg = readRadarFile(sampleFilePath);
+      auto msg_marker = readRadarFileMarker(sampleFilePath);
       writeMsg(topicName, sensorName, sampleData.timeStamp, outBag, msg);
+      writeMsgMarkerArray(topicName+"_vis", sensorName, sampleData.timeStamp, outBag, msg_marker);
 
     } else {
       cout << "Unknown sample type" << endl;
