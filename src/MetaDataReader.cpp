@@ -44,6 +44,7 @@ MetaDataReader::loadFromDirectory(const fs::path& directoryPath)
   const fs::path sceneFile = directoryPath / "scene.json";
   const fs::path sampleFile = directoryPath / "sample.json";
   const fs::path sampleDataFile = directoryPath / "sample_data.json";
+  const fs::path sampleAnnoFile = directoryPath / "sample_annotation.json";
   const fs::path egoPoseFile = directoryPath / "ego_pose.json";
   const fs::path calibratedSensorFile =
     directoryPath / "calibrated_sensor.json";
@@ -52,6 +53,7 @@ MetaDataReader::loadFromDirectory(const fs::path& directoryPath)
   scenes = loadScenesFromFile(sceneFile);
   scene2Samples = loadSampleInfos(sampleFile);
   sample2SampleData = loadSampleDataInfos(sampleDataFile);
+  sample2SampleAnno = loadSampleAnnoInfos(sampleAnnoFile); 
   calibratedSensorToken2CalibratedSensorInfo =
     loadCalibratedSensorInfo(calibratedSensorFile);
   sensorToken2CalibratedSensorName = loadCalibratedSensorNames(sensorFile);
@@ -171,6 +173,28 @@ MetaDataReader::loadSampleDataInfos(const fs::path& filePath)
   }
 
   return sample2SampleData;
+}
+
+std::map<Token, std::vector<SampleAnnoInfo>>
+MetaDataReader::loadSampleAnnoInfos(const fs::path& filePath)
+{
+  auto sampleAnnoJsons = slurpJsonFile(filePath);
+  std::map<Token, std::vector<SampleAnnoInfo>> sample2SampleAnno;
+
+  for(const auto& sampleAnnoJson : sampleAnnoJsons) {
+    Token sampleToken = sampleAnnoJson["sample_token"];
+    Token sampleAnnoToken = sampleAnnoJson["token"];
+    std::vector<SampleAnnoInfo>& sampleAnnos =
+      getExistingOrDefault(sample2SampleAnno, sampleToken);
+    sampleAnnos.push_back(SampleAnnoInfo{
+      sampleAnnoToken,
+      sampleAnnoJson["translation"],
+      sampleAnnoJson["size"],
+      sampleAnnoJson["rotation"],
+    });
+  }
+  
+  return sample2SampleAnno;
 }
 
 EgoPoseInfo

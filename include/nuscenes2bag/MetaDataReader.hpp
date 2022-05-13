@@ -57,6 +57,8 @@ private:
   loadSampleInfos(const fs::path &filePath);
   static std::map<Token, std::vector<SampleDataInfo>>
   loadSampleDataInfos(const fs::path &filePath);
+  static std::map<Token, std::vector<SampleAnnoInfo>>
+  loadSampleAnnoInfos(const fs::path &filePath);
   static std::map<Token, std::vector<EgoPoseInfo>> loadEgoPoseInfos(
       const fs::path &filePath,
       std::map<Token, Token> sample2SampleData);
@@ -68,6 +70,7 @@ private:
   std::vector<SceneInfo> scenes;
   std::map<Token, std::vector<SampleInfo>> scene2Samples;
   std::map<Token, std::vector<SampleDataInfo>> sample2SampleData;
+  std::map<Token, std::vector<SampleAnnoInfo>> sample2SampleAnno;
   std::map<Token, std::vector<EgoPoseInfo>> scene2EgoPose;
   std::map<Token, CalibratedSensorInfo> calibratedSensorToken2CalibratedSensorInfo;
   std::map<Token, std::set<CalibratedSensorInfoAndName>> scene2CalibratedSensorInfo;

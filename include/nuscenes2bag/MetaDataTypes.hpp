@@ -36,6 +36,19 @@ struct SampleDataInfo {
     std::string fileName;
 };
 
+struct SampleAnnoInfo {
+    Token token;
+    // Token instanceToken;
+    // Token attributeTokens;
+    double translation[3];
+    double size[3];
+    double rotation[3];
+    // Token prev;
+    // Token next;
+    // size_t num_radar_pts;
+    // size_t num_lidar_pts;
+};
+
 struct CalibratedSensorInfo {
     Token token;
     Token sensorToken;
