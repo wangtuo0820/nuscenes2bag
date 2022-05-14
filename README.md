@@ -11,7 +11,7 @@ Probably the original dataset is also collected by Aptiv using ROS, so most data
 
 ![](images/ros_preview.png)
 
-![nuscene_rosbag_preview](/home/tuo/Workspace/catkin_ws/src/nuscenes2bag/README.assets/nuscene_rosbag_preview.gif)
+![nuscene_rosbag_preview](./images/nuscene_rosbag_preview.gif)
 
 ## Install
 
