@@ -11,8 +11,7 @@ Probably the original dataset is also collected by Aptiv using ROS, so most data
 
 ![](images/ros_preview.png)
 
-Add ros marker support.
-![](images/ros_preview_w_marker.png)
+![nuscene_rosbag_preview](/home/tuo/Workspace/catkin_ws/src/nuscenes2bag/README.assets/nuscene_rosbag_preview.gif)
 
 ## Install
 
