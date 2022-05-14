@@ -37,6 +37,8 @@ public:
 
   std::vector<SampleDataInfo>
   getSceneSampleData(const Token &sceneToken) const override;
+  std::vector<SampleAnnoInfo>
+  getSceneSampleAnno(const Token &sceneToken) const override;
   std::vector<EgoPoseInfo>
   getEgoPoseInfo(const Token &sceneToken) const override;
   CalibratedSensorInfo

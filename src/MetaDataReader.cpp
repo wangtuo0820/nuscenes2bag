@@ -85,6 +85,10 @@ MetaDataReader::loadFromDirectory(const fs::path& directoryPath)
         calibratedSensorInfoSet.insert(CalibratedSensorInfoAndName{
           calibratedSensorInfo, calibratedSensorName });
       }
+      // TODO
+      for(auto& sampleAnno : sample2SampleAnno[sampleInfo.token]) {
+        sampleAnno.timeStamp = sampleInfo.timeStamp;
+      }
     }
   }
 
@@ -175,6 +179,29 @@ MetaDataReader::loadSampleDataInfos(const fs::path& filePath)
   return sample2SampleData;
 }
 
+SampleAnnoInfo
+sampleAnnoJson2SampleAnnoInfo(const json::json& sampleAnnoJson)
+{
+  SampleAnnoInfo sampleAnnoInfo;
+  
+  sampleAnnoInfo.translation[0] = sampleAnnoJson["translation"][0];
+  sampleAnnoInfo.translation[1] = sampleAnnoJson["translation"][1];
+  sampleAnnoInfo.translation[2] = sampleAnnoJson["translation"][2];
+  
+  sampleAnnoInfo.size[0] = sampleAnnoJson["size"][0];
+  sampleAnnoInfo.size[1] = sampleAnnoJson["size"][1];
+  sampleAnnoInfo.size[2] = sampleAnnoJson["size"][2];
+  
+  sampleAnnoInfo.rotation[0] = sampleAnnoJson["rotation"][0];
+  sampleAnnoInfo.rotation[1] = sampleAnnoJson["rotation"][1];
+  sampleAnnoInfo.rotation[2] = sampleAnnoJson["rotation"][2];
+  sampleAnnoInfo.rotation[3] = sampleAnnoJson["rotation"][3];
+
+  sampleAnnoInfo.sampleToken = sampleAnnoJson["sample_token"];
+
+  return sampleAnnoInfo;
+}
+
 std::map<Token, std::vector<SampleAnnoInfo>>
 MetaDataReader::loadSampleAnnoInfos(const fs::path& filePath)
 {
@@ -186,12 +213,9 @@ MetaDataReader::loadSampleAnnoInfos(const fs::path& filePath)
     Token sampleAnnoToken = sampleAnnoJson["token"];
     std::vector<SampleAnnoInfo>& sampleAnnos =
       getExistingOrDefault(sample2SampleAnno, sampleToken);
-    sampleAnnos.push_back(SampleAnnoInfo{
-      sampleAnnoToken,
-      sampleAnnoJson["translation"],
-      sampleAnnoJson["size"],
-      sampleAnnoJson["rotation"],
-    });
+
+    SampleAnnoInfo sampleAnnoInfo = sampleAnnoJson2SampleAnnoInfo(sampleAnnoJson);
+    sampleAnnos.push_back(sampleAnnoInfo);
   }
   
   return sample2SampleAnno;
@@ -332,6 +356,26 @@ MetaDataReader::getSceneSampleData(const Token& sceneToken) const
   }
 
   return sampleDataInfos;
+}
+
+std::vector<SampleAnnoInfo>
+MetaDataReader::getSceneSampleAnno(const Token& sceneToken) const
+{
+  std::vector<SampleAnnoInfo> sampleAnnoInfos;
+  
+  const auto& sceneSamples = 
+    findOrThrow(scene2Samples, sceneToken, " sample for scene token");
+  for (const auto& sceneSample : sceneSamples) {
+    const Token& sceneSampleToken = sceneSample.token;
+    const auto& sceneSampleAnnos = findOrThrow(
+      sample2SampleAnno, sceneSampleToken, " sample anno for sample token");
+
+    for (const SampleAnnoInfo& sampleAnno : sceneSampleAnnos) {
+      sampleAnnoInfos.push_back(sampleAnno);
+    }
+  }
+
+  return sampleAnnoInfos;
 }
 
 std::vector<EgoPoseInfo>

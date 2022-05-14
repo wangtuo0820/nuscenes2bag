@@ -94,6 +94,7 @@ SceneConverter::submit(const Token& sceneToken, FileProgress& fileProgress)
   sceneId = sceneInfo.sceneId;
   this->sceneToken = sceneToken;
   sampleDatas = metaDataProvider.getSceneSampleData(sceneToken);
+  sampleAnnos = metaDataProvider.getSceneSampleAnno(sceneToken);
   egoPoseInfos = metaDataProvider.getEgoPoseInfo(sceneToken);
 
   fileProgress.addToProcess(sampleDatas.size());
@@ -104,7 +105,6 @@ SceneConverter::run(const fs::path& inPath,
                     const fs::path& outDirectoryPath,
                     FileProgress& fileProgress)
 {
-
   std::string bagName =
     outDirectoryPath.string() + "/" + std::to_string(sceneId) + ".bag";
 
@@ -113,9 +113,47 @@ SceneConverter::run(const fs::path& inPath,
 
   auto sensorInfos = metaDataProvider.getSceneCalibratedSensorInfo(sceneToken);
   convertEgoPoseInfos(outBag, sensorInfos);
+  convertSampleAnnos(outBag);
   convertSampleDatas(outBag, inPath, fileProgress);
 
   outBag.close();
+}
+
+void
+SceneConverter::convertSampleAnnos(rosbag::Bag& outBag)
+{
+  std::string frameID = "map";
+  std::string topicName = "annotation";
+
+  std::unordered_map<TimeStamp, jsk_recognition_msgs::BoundingBoxArray> timeStamp2AnnoBboxes;
+  for (const auto& sampleAnno : sampleAnnos) {
+    jsk_recognition_msgs::BoundingBox annoBox;
+    annoBox.header.stamp = stampUs2RosTime(sampleAnno.timeStamp);
+    annoBox.header.frame_id = frameID;
+    annoBox.pose.position.x = sampleAnno.translation[0]; 
+    annoBox.pose.position.y = sampleAnno.translation[1]; 
+    annoBox.pose.position.z = sampleAnno.translation[2]; 
+
+    annoBox.dimensions.x = sampleAnno.size[1]; 
+    annoBox.dimensions.y = sampleAnno.size[0]; 
+    annoBox.dimensions.z = sampleAnno.size[2]; 
+
+    annoBox.pose.orientation.x = sampleAnno.rotation[1];
+    annoBox.pose.orientation.y = sampleAnno.rotation[2];
+    annoBox.pose.orientation.z = sampleAnno.rotation[3];
+    annoBox.pose.orientation.w = sampleAnno.rotation[0];
+
+    if(!timeStamp2AnnoBboxes.count(sampleAnno.timeStamp))
+    {
+      timeStamp2AnnoBboxes.emplace(sampleAnno.timeStamp, jsk_recognition_msgs::BoundingBoxArray());
+    }
+    timeStamp2AnnoBboxes[sampleAnno.timeStamp].boxes.push_back(annoBox);
+  }
+ 
+  for (auto &kv : timeStamp2AnnoBboxes)
+  {
+    writeMsg(topicName, frameID, kv.first, outBag, boost::optional<jsk_recognition_msgs::BoundingBoxArray>(kv.second));
+  }
 }
 
 void
@@ -157,9 +195,9 @@ SceneConverter::convertSampleDatas(rosbag::Bag& outBag,
     } else if (sampleType == SampleType::RADAR) {
       auto topicName = sensorName;
       auto msg = readRadarFile(sampleFilePath);
-      auto msg_marker = readRadarFileMarker(sampleFilePath);
       writeMsg(topicName, sensorName, sampleData.timeStamp, outBag, msg);
-      writeMsgMarkerArray(topicName+"_vis", sensorName, sampleData.timeStamp, outBag, msg_marker);
+      auto msgMarker = readRadarFileMarker(sampleFilePath);
+      writeMsgMarkerArray(topicName+"_vis", sensorName, sampleData.timeStamp, outBag, msgMarker);
 
     } else {
       cout << "Unknown sample type" << endl;

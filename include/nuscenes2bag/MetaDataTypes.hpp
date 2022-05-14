@@ -38,11 +38,12 @@ struct SampleDataInfo {
 
 struct SampleAnnoInfo {
     Token token;
-    // Token instanceToken;
+    Token sampleToken;
+    TimeStamp timeStamp;
     // Token attributeTokens;
     double translation[3];
     double size[3];
-    double rotation[3];
+    double rotation[4];
     // Token prev;
     // Token next;
     // size_t num_radar_pts;

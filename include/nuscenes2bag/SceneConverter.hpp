@@ -17,11 +17,13 @@ class SceneConverter {
 
     private:
     void convertSampleDatas(rosbag::Bag& outBag, const fs::path &inPath, FileProgress& fileProgress);
+    void convertSampleAnnos(rosbag::Bag& outBag);
     void convertEgoPoseInfos(rosbag::Bag& outBag, const std::vector<CalibratedSensorInfoAndName>& calibratedSensorInfo);
     
     private:
     const MetaDataProvider& metaDataProvider;
     std::vector<SampleDataInfo> sampleDatas;
+    std::vector<SampleAnnoInfo> sampleAnnos;
     std::vector<EgoPoseInfo> egoPoseInfos;
     SceneId sceneId;
     Token sceneToken;
